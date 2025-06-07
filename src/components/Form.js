@@ -2,13 +2,17 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const Form = () => {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     username: '',
     email: '',
     password: '',
-    phoneNo: '',
+    showPassword: false,
+    countryCode: '',
+    phoneNumber: '',
     country: '',
     city: '',
     panNo: '',
@@ -16,163 +20,197 @@ const Form = () => {
   });
 
   const [errors, setErrors] = useState({});
-  const navigate = useNavigate();
 
-  const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: '' });
+  const validateEmail = (email) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  const validatePan = (pan) =>
+    /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(pan);
+
+  const validateAadhar = (aadhar) =>
+    /^[0-9]{12}$/.test(aadhar);
+
+  const validateForm = () => {
+    const errs = {};
+    const {
+      firstName,
+      lastName,
+      username,
+      email,
+      password,
+      countryCode,
+      phoneNumber,
+      country,
+      city,
+      panNo,
+      aadharNo,
+    } = formData;
+
+    if (!firstName) errs.firstName = 'First name is required';
+    if (!lastName) errs.lastName = 'Last name is required';
+    if (!username) errs.username = 'Username is required';
+
+    if (!email) {
+      errs.email = 'Email is required';
+    } else if (!validateEmail(email)) {
+      errs.email = 'Invalid email';
+    }
+
+    if (!password) errs.password = 'Password is required';
+    if (!countryCode) errs.countryCode = 'Country code is required';
+    if (!phoneNumber) errs.phoneNumber = 'Phone number is required';
+
+    if (!country) errs.country = 'Country is required';
+    if (!city) errs.city = 'City is required';
+
+    if (!panNo) {
+      errs.panNo = 'PAN is required';
+    } else if (!validatePan(panNo)) {
+      errs.panNo = 'Invalid PAN format';
+    }
+
+    if (!aadharNo) {
+      errs.aadharNo = 'Aadhar is required';
+    } else if (!validateAadhar(aadharNo)) {
+      errs.aadharNo = 'Invalid Aadhar number';
+    }
+
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
   };
 
-  const validateEmail = (email) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
+  const handleChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+    setErrors((prev) => ({
+      ...prev,
+      [e.target.name]: '',
+    }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    let errs = {};
-    if (!formData.firstName) errs.firstName = "First Name can't be blank";
-    if (!formData.lastName) errs.lastName = "Last Name can't be blank";
-    if (!formData.username) errs.username = "Username can't be blank";
-    if (!formData.email) {
-      errs.email = "Email can't be blank";
-    } else if (!validateEmail(formData.email)) {
-      errs.email = "Invalid email format";
-    }
-    if (!formData.password) errs.password = "Password can't be blank";
-    if (!formData.phoneNo) errs.phoneNo = "Phone No. can't be blank";
-    if (!formData.country) errs.country = "Country can't be blank";
-    if (!formData.city) errs.city = "City can't be blank";
-    if (!formData.panNo) errs.panNo = "Pan No. can't be blank";
-    if (!formData.aadharNo) errs.aadharNo = "Aadhar No. can't be blank";
-
-    setErrors(errs);
-    if (Object.keys(errs).length === 0) {
+    if (validateForm()) {
       navigate('/success', { state: { formData } });
     }
   };
 
+  const togglePassword = () => {
+    setFormData((prev) => ({
+      ...prev,
+      showPassword: !prev.showPassword,
+    }));
+  };
+
   return (
     <form onSubmit={handleSubmit}>
+      {[
+        { label: 'First Name', name: 'firstName' },
+        { label: 'Last Name', name: 'lastName' },
+        { label: 'Username', name: 'username' },
+        { label: 'Email', name: 'email', type: 'email' },
+      ].map(({ label, name, type = 'text' }) => (
+        <label key={name}>
+          {label}:<br />
+          <input
+            type={type}
+            name={name}
+            value={formData[name]}
+            onChange={handleChange}
+          />
+          {errors[name] && <p style={{ color: 'red' }}>{errors[name]}</p>}
+        </label>
+      ))}
+
       <label>
-        First Name:
-        <br />
+        Password:<br />
         <input
-          type="text"
-          name="firstName"
-          value={formData.firstName}
-          onChange={handleInputChange}
-        />
-        {errors.firstName && <p>{errors.firstName}</p>}
-      </label>
-      <br />
-      <label>
-        Last Name:
-        <br />
-        <input
-          type="text"
-          name="lastName"
-          value={formData.lastName}
-          onChange={handleInputChange}
-        />
-        {errors.lastName && <p>{errors.lastName}</p>}
-      </label>
-      <br />
-      <label>
-        Username:
-        <br />
-        <input
-          type="text"
-          name="username"
-          value={formData.username}
-          onChange={handleInputChange}
-        />
-        {errors.username && <p>{errors.username}</p>}
-      </label>
-      <br />
-      <label>
-        Email:
-        <br />
-        <input
-          type="email"
-          name="email"
-          value={formData.email}
-          onChange={handleInputChange}
-        />
-        {errors.email && <p>{errors.email}</p>}
-      </label>
-      <br />
-      <label>
-        Password:
-        <br />
-        <input
-          type="password"
+          type={formData.showPassword ? 'text' : 'password'}
           name="password"
           value={formData.password}
-          onChange={handleInputChange}
+          onChange={handleChange}
         />
-        {errors.password && <p>{errors.password}</p>}
+        <button type="button" onClick={togglePassword}>
+          {formData.showPassword ? 'Hide' : 'Show'}
+        </button>
+        {errors.password && <p style={{ color: 'red' }}>{errors.password}</p>}
       </label>
+
       <br />
       <label>
-        Phone No.:
-        <br />
+        Phone No.:<br />
         <input
           type="text"
-          name="phoneNo"
-          value={formData.phoneNo}
-          onChange={handleInputChange}
+          name="countryCode"
+          placeholder="+91"
+          style={{ width: '50px' }}
+          value={formData.countryCode}
+          onChange={handleChange}
         />
-        {errors.phoneNo && <p>{errors.phoneNo}</p>}
+        <input
+          type="text"
+          name="phoneNumber"
+          placeholder="1234567890"
+          value={formData.phoneNumber}
+          onChange={handleChange}
+        />
+        {errors.countryCode && <p style={{ color: 'red' }}>{errors.countryCode}</p>}
+        {errors.phoneNumber && <p style={{ color: 'red' }}>{errors.phoneNumber}</p>}
       </label>
+
       <br />
       <label>
-        Country:
-        <br />
-        <select name="country" value={formData.country} onChange={handleInputChange}>
-          <option value="">Select Country</option>
+        Country:<br />
+        <select name="country" value={formData.country} onChange={handleChange}>
+          <option value="">Select</option>
           <option value="India">India</option>
           <option value="USA">USA</option>
         </select>
-        {errors.country && <p>{errors.country}</p>}
+        {errors.country && <p style={{ color: 'red' }}>{errors.country}</p>}
       </label>
+
       <br />
       <label>
-        City:
-        <br />
-        <select name="city" value={formData.city} onChange={handleInputChange}>
-          <option value="">Select City</option>
-          <option value="City1">City1</option>
-          <option value="City2">City2</option>
+        City:<br />
+        <select name="city" value={formData.city} onChange={handleChange}>
+          <option value="">Select</option>
+          <option value="Delhi">Delhi</option>
+          <option value="Mumbai">Mumbai</option>
+          <option value="New York">New York</option>
         </select>
-        {errors.city && <p>{errors.city}</p>}
+        {errors.city && <p style={{ color: 'red' }}>{errors.city}</p>}
       </label>
+
       <br />
       <label>
-        Pan No.:
-        <br />
+        PAN No.:<br />
         <input
           type="text"
           name="panNo"
           value={formData.panNo}
-          onChange={handleInputChange}
+          onChange={handleChange}
         />
-        {errors.panNo && <p>{errors.panNo}</p>}
+        {errors.panNo && <p style={{ color: 'red' }}>{errors.panNo}</p>}
       </label>
+
       <br />
       <label>
-        Aadhar No.:
-        <br />
+        Aadhar No.:<br />
         <input
           type="text"
           name="aadharNo"
           value={formData.aadharNo}
-          onChange={handleInputChange}
+          onChange={handleChange}
         />
-        {errors.aadharNo && <p>{errors.aadharNo}</p>}
+        {errors.aadharNo && <p style={{ color: 'red' }}>{errors.aadharNo}</p>}
       </label>
+
       <br />
-      <button type="submit">Submit</button>
+      <button type="submit" disabled={!validateForm()}>
+        Submit
+      </button>
     </form>
   );
 };
