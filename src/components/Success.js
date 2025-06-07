@@ -1,23 +1,33 @@
 import React from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const Success = () => {
   const location = useLocation();
-  const { formData } = location.state;
+  const navigate = useNavigate();
+  const { formData } = location.state || {};
+
+  if (!formData) {
+    return (
+      <div>
+        <p>No form data found. Please submit the form first.</p>
+        <button onClick={() => navigate('/')}>Go Back</button>
+      </div>
+    );
+  }
 
   return (
     <div>
       <h2>Form submitted successfully!</h2>
-      <p>First Name: {formData.firstName}</p>
-      <p>Last Name: {formData.lastName}</p>
-      <p>Username: {formData.username}</p>
-      <p>Email: {formData.email}</p>
-      <p>Password: {formData.password}</p>s
-      <p>Phone No.: {formData.phoneNo}</p>
-      <p>Country: {formData.country}</p>
-      <p>City: {formData.city}</p>
-      <p>Pan No.: {formData.panNo}</p>
-      <p>Aadhar No.: {formData.aadharNo}</p>
+      <p><strong>First Name:</strong> {formData.firstName}</p>
+      <p><strong>Last Name:</strong> {formData.lastName}</p>
+      <p><strong>Username:</strong> {formData.username}</p>
+      <p><strong>Email:</strong> {formData.email}</p>
+      <p><strong>Password:</strong> {formData.password}</p>
+      <p><strong>Phone No.:</strong> {formData.countryCode} {formData.phoneNumber}</p>
+      <p><strong>Country:</strong> {formData.country}</p>
+      <p><strong>City:</strong> {formData.city}</p>
+      <p><strong>PAN No.:</strong> {formData.panNo}</p>
+      <p><strong>Aadhar No.:</strong> {formData.aadharNo}</p>
     </div>
   );
 };
